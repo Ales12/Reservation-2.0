@@ -182,8 +182,8 @@ function reservations_install()
     $setting_array = array(
         'name' => 'reservation_avatar_exist_form',
         'title' => 'Eintragungsart der Avatarperson',
-        'description' => 'Wie wird die Avatarperson in die vergebene Avatarpersonenliste eingetragen?',
-        'optionscode' => "select\n0=Vorname Nachname\n1=Nachname, Vorname",
+        'description' => 'Wie wird die Avatarperson in die vergebene Avatarpersonenliste eingetragen??',
+        'optionscode' => "select\n0=Vorname Nachname\n1=Nachname, Vorname\n2=Avatarlist und Reservierung identisch",
         'value' => 0,
         'disporder' => 12,
         "gid" => (int)$gid
@@ -903,7 +903,11 @@ function reservations_header(){
 
 function reservations_alert_global()
 {
-    global $mybb, $db, $templates, $left_days, $reservation_global_alerts, $extend, $reserv_reservationtime;
+    global $mybb, $db, $templates,$lang, $left_days, $reservation_global_alerts, $extend, $reserv_reservationtime;
+   
+    $lang->load('reservations');
+    $max_count = $mybb->settings['reservation_userextend'];
+
 
     $select = $db->query("SELECT *
         FROM " . TABLE_PREFIX . "reservations
@@ -932,20 +936,19 @@ function reservations_alert_global()
         if ($reservations['uid'] != 0) {
             if ($mybb->user['uid'] == $user_uid or $mybb->user['as_uid'] == $user_uid) {
 
-                if ($reservations['count'] == 0) {
-                    $extend = "Du kannst noch 2x Verlängern!";
-                } elseif ($reservations['count'] == 1) {
-                    $extend = "Du kannst noch 1x Verlängern!";
-                } elseif ($reservations['count'] == 2) {
-                    $extend = "Du kannst nicht mehr Verlängern!";
+                if ($reservations['count'] < $max_count && $reservations['count'] != $max_count) {
+                    $count = $max_count - $reservations['count'];
+                    $extend = $lang->sprintf($lang->reservation_alert_extend, $count);
+                } elseif($reservations['count'] == $max_count){
+                    $extend = $lang->reservation_alert_noextend;
                 }
                 if ($left_days <= 8) {
                     if ($left_days > 1) {
-                        $reserv_reservationtime = "<a href='misc.php?action=reservations'>Deine Reservierung für <b>" . $reservierung . "</b> läuft in " . $left_days . " Tagen ab. {$extend}</a>";
+                        $reserv_reservationtime = $lang->sprintf($lang->reservation_alert_resttime, $reservierung, $left_days, $extend);
                     } elseif ($left_days == 1) {
-                        $reserv_reservationtime = "<a href='misc.php?action=reservations'>Deine Reservierung für <b>" . $reservierung . "</b> läuft in einem Tag ab. {$extend}</a>";
+                        $reserv_reservationtime = $lang->sprintf($lang->reservation_alert_resttime, $reservierung, $extend);
                     } else{
-                        $reserv_reservationtime = "<a href='misc.php?action=reservations'>Deine Reservierung für <b>" . $reservierung . "</b> ist abgelaufen. {$extend}</a>";
+                        $reserv_reservationtime = $lang->sprintf($lang->reservation_alert_resttime, $reservierung, $extend);
 
                     }
 
