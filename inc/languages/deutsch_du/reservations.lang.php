@@ -27,6 +27,12 @@ $l['reservation_delete'] = "<i class='fa-solid fa-trash-can' title='Reservierung
 $l['reservation_edit'] = "<i class='fa-solid fa-file-pen' title='Reservierung editieren'></i>";
 $l['reservation_reserve_edit'] = "Reservierung editieren";
 
+$l['reservation_alert_extend'] = "Du kannst noch {1}x verlängern.";
+$l['reservation_alert_noextend'] = "Du kannst noch nicht mehr verlängern.";
+$l['reservation_alert_resttime'] = "<a href='misc.php?action=reservations'>Deine Reservierung für <b>{1}</b> läuft in {2} Tagen ab.</a> {3}";
+$l['reservation_alert_resttime_oneday'] = "<a href='misc.php?action=reservations'>Deine Reservierung für <b>{1}</b> läuft in einen Tag ab.</a>  {2}";
+$l['reservation_alert_resttime_none'] = "<a href='misc.php?action=reservations'>Deine Reservierung für <b>{1}</b> abgelaufen.</a> {2}";
+
 // Alerts
 $l['myalerts_reservation_delete'] = "{1} hat deine Reservierung für <b>{2}</b> ({3}) gelöscht.";
 $l['myalerts_setting_reservation_delete'] = "Benachrichtungen, wenn eine Reservierung gelöscht wurde?";
