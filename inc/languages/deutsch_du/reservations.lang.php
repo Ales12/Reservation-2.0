@@ -20,7 +20,8 @@ $l['reservation_between'] = "für";
 $l['reservation_wanted_text'] = "(Gesuch)";
 $l['reservation_maxwanted'] = "Du darfst keine Avatarpersonen mehr für Gesuche reservieren!";
 $l['reservation_maxavatar'] = "Du darfst keine Avatarpersonen mehr reservieren!";
-
+$l['reservation_avaexist'] = "Diese Avatarperson ist schon vergeben!";
+  
 $l['reservation_extend'] = "<i class='fa-solid fa-arrow-rotate-right' title='Reservierung verlängern'></i>";
 $l['reservation_delete'] = "<i class='fa-solid fa-trash-can' title='Reservierung löschen'></i>";
 $l['reservation_edit'] = "<i class='fa-solid fa-file-pen' title='Reservierung editieren'></i>";
@@ -28,4 +29,4 @@ $l['reservation_reserve_edit'] = "Reservierung editieren";
 
 // Alerts
 $l['myalerts_reservation_delete'] = "{1} hat deine Reservierung für <b>{2}</b> ({3}) gelöscht.";
-$l['myalerts_setting_myalerts_reservation_delete'] = "Benachrichtungen, wenn eine Reservierung gelöscht wurde?";
+$l['myalerts_setting_reservation_delete'] = "Benachrichtungen, wenn eine Reservierung gelöscht wurde?";
