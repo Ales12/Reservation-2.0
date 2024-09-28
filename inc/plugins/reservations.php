@@ -179,14 +179,23 @@ function reservations_install()
         "gid" => (int)$gid
     );
     $db->insert_query ('settings', $setting_array);
-
+    $setting_array = array(
+        'name' => 'reservation_avatar_exist_form',
+        'title' => 'Eintragungsart der Avatarperson',
+        'description' => 'Wie wird die Avatarperson in die vergebene Avatarpersonenliste eingetragen??',
+        'optionscode' => "select\n0=Vorname Nachname\n1=Nachname, Vorname",
+        'value' => 0,
+        'disporder' => 12,
+        "gid" => (int)$gid
+    );
+    $db->insert_query ('settings', $setting_array);
     $setting_array = array(
         'name' => 'reservation_avatar_exist',
         'title' => 'Existierende Avatar',
         'description' => 'Gib hier die Profilfeld ID ein, worin der User sein Avatar angibt.',
         'optionscode' => 'text',
         'value' => 'fid1',
-        'disporder' => 12,
+        'disporder' => 13,
         "gid" => (int)$gid
     );
     $db->insert_query ('settings', $setting_array);
@@ -199,7 +208,7 @@ function reservations_install()
         'description' => 'Hier kannst du einen Regeltext eintragen',
         'optionscode' => 'textarea',
         'value' => 'Hier kommt ein Regeltext rein.',
-        'disporder' => 12,
+        'disporder' => 14,
         "gid" => (int)$gid
     );
     $db->insert_query ('settings', $setting_array);
@@ -382,6 +391,7 @@ function reservations_uninstall()
     $db->query("DELETE FROM ".TABLE_PREFIX."settings WHERE name='reservation_avatar_exist_control'");
     $db->query("DELETE FROM ".TABLE_PREFIX."settings WHERE name='reservation_avatar_exist'");
     $db->query("DELETE FROM ".TABLE_PREFIX."settings WHERE name='reservation_rule'");
+    $db->query("DELETE FROM ".TABLE_PREFIX."settings WHERE name='reservation_avatar_exist_form'");
     //Tabelle aus Datenbank löschen
     if($db->table_exists("reservations"))
     {
@@ -434,6 +444,27 @@ function reservations_deactivate()
 }
 
 
+// ADMIN-CP PEEKER
+$plugins->add_hook('admin_config_settings_change', 'reservations_settings_change');
+$plugins->add_hook('admin_settings_print_peekers', 'reservations_settings_peek');
+function reservations_settings_change()
+{
+    global $db, $mybb, $reservations_settings_peeker;
+
+    $result = $db->simple_select('settinggroups', 'gid', "name='reservation'", array("limit" => 1));
+    $group = $db->fetch_array($result);
+    $reservations_settings_peeker = ($mybb->input['gid'] == $group['gid']) && ($mybb->request_method != 'post');
+}
+function reservations_settings_peek(&$peekers)
+{
+    global $mybb, $reservations_settings_peeker;
+
+    if ($reservations_settings_peeker) {
+        $peekers[] = 'new Peeker($(".setting_reservation_avatar_exist_control"), $("#row_setting_reservation_avatar_exist_form"),/1/,true)';
+        $peekers[] = 'new Peeker($(".setting_reservation_avatar_exist_control"), $("#row_setting_reservation_avatar_exist"),/1/,true)';
+
+    }
+}
 
 // In the body of your plugin
 function reservations()
@@ -471,7 +502,9 @@ function reservations()
         $guest_res = intval($mybb->settings['reservation_guest']);
         $avatar_exist_control = $mybb->settings['reservation_avatar_exist_control'];
         $avatar_exist = $mybb->settings['reservation_avatar_exist'];
+        $avatar_exist_form = $mybb->settings['reservation_avatar_exist_form'];
         $reservation_rules = $mybb->settings['reservation_rule'];
+
 
         // weitere Zählungen
         $reservation_name_count = 2;
@@ -720,13 +753,49 @@ function reservations()
                 "username" => $db->escape_string($username),
             );
 
+            $true = true;
+
+            $claim = $db->escape_string($_POST['reservation']);
+
+            // existieren abfrage
             if($_POST['cat'] == "{$lang->reservation_wanted}" && $_POST['wanted'] == ""){
+                $true = false;
                 $missing_wantedlink = "<div class='red_alert'>{$lang->reservation_missing_link}</div>";
             } elseif($_POST['cat'] == "{$lang->reservation_wanted}" AND $count_wanted == $max_wanted){
+                $true = false;
                 $no_reserv ="<div class='red_alert'>{$lang->reservation_maxwanted}</div>";
             }  elseif($_POST['cat'] == "{$lang->reservation_avatar}" AND $count_avatar == $max_avatar){
+                $true = false;
                 $no_reserv = "<div class='red_alert'>{$lang->reservation_maxavatar}</div>";
-            } else{
+            }elseif($avatar_exist_control == 1){
+                $row_cnt = 0;
+
+                if($avatar_exist_form == 0){
+                    $avaselect = $db->query("SELECT *
+                    FROM ".TABLE_PREFIX."userfields
+                    WHERE UPPER(".$avatar_exist.") = UPPER('$claim')
+                    ");
+                        $row_cnt = mysqli_num_rows($avaselect);
+                } elseif($avatar_exist_control == 1){
+                    $get_claim = explode(", ", $claim);
+                    $claim = $get_claim[1]." ".$get_claim[0];
+                    $avaselect = $db->query("SELECT *
+                    FROM ".TABLE_PREFIX."userfields
+                    WHERE UPPER(".$avatar_exist.") = UPPER('$claim')
+                    ");
+                        $row_cnt = mysqli_num_rows($avaselect);
+                }
+
+                if($row_cnt != 0){
+                    $true = false;
+                    $no_reserv = "<div class='red_alert'>{$lang->reservation_avaexist}</div>";
+                }
+
+            }
+
+
+
+            if($true == true){
                 $db->insert_query("reservations", $new_reservation);
                 redirect("misc.php?action=reservations");
             }
