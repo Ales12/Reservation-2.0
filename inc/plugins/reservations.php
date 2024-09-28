@@ -182,7 +182,7 @@ function reservations_install()
     $setting_array = array(
         'name' => 'reservation_avatar_exist_form',
         'title' => 'Eintragungsart der Avatarperson',
-        'description' => 'Wie wird die Avatarperson in die vergebene Avatarpersonenliste eingetragen??',
+        'description' => 'Wie wird die Avatarperson in die vergebene Avatarpersonenliste eingetragen?',
         'optionscode' => "select\n0=Vorname Nachname\n1=Nachname, Vorname",
         'value' => 0,
         'disporder' => 12,
