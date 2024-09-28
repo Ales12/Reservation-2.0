@@ -30,9 +30,9 @@ function reservations_info()
     return array(
         "name"			=> "Userreservierungen",
         "description"	=> "Dieser Plugin erlaubt das automatische Reservieren.",
-        "website"		=> "",
+        "website"		=> "https://github.com/Ales12/Reservation-2.0",
         "author"		=> "Ales",
-        "authorsite"	=> "",
+        "authorsite"	=> "https://github.com/Ales12",
         "version"		=> "2.0",
         "guid" 			=> "",
         "codename"		=> "",
@@ -63,7 +63,7 @@ function reservations_install()
 
     $setting_group = array(
         'name' => 'reservation',
-        'title' => 'Reservierung',
+        'title' => 'Einstellungen für Reservierung',
         'description' => 'Hier kannst du alles zu deinen Plugin einstellen.',
         'disporder' => 5, // The order your setting group will display
         'isdefault' => 0
@@ -438,9 +438,9 @@ function reservations_deactivate()
 // In the body of your plugin
 function reservations()
 {
-    global $mybb, $templates, $lang, $header, $headerinclude, $footer, $page, $db, $parser, $username,$reservation_cat, $reservation_wanted, $extend, $reservation_options, $count_avatar, $no_reserv, $reserv_count, $count_wanted, $reservation_gender_select, $reservation_rules, $missing_wantedlink, $days_remain, $reserv_infos,$reservation_options,$reservation_edit ;
+    global $mybb, $templates, $lang, $header, $headerinclude, $footer, $page, $db, $parser, $username,$reservation_cat, $reservation_wanted, $extend, $edit_days, $reservation_options, $count_avatar, $no_reserv, $reserv_count, $count_wanted, $reservation_gender_select, $reservation_rules, $missing_wantedlink, $days_remain, $reserv_infos,$reservation_options,$reservation_edit ;
 
-    $lang->load('reservation');
+    $lang->load('reservations');
     ///der Parser halt
     require_once MYBB_ROOT."inc/class_parser.php";;
     $parser = new postParser;
@@ -511,6 +511,7 @@ function reservations()
             $editallowd = false;
             $reservation_options  = "";
             $wanted = "";
+            $extend = "";
 
 // Informationen holen
             $user = get_user($reservations['uid']);
@@ -530,7 +531,7 @@ function reservations()
 
             while ($all_charas = $db->fetch_array($chara_select)) {
 
-
+                $reservation_gender_select  = "";
                 if ($user['uid'] == $all_charas['uid']) {
                     //erlaube das editieren
                     $editallowd = true;
@@ -550,11 +551,7 @@ function reservations()
             $reservation_id = $reservations['reservation_id'];
 
 
-            if ($mybb->user['uid'] == 0) {
-                $options = "";
-                $res_count = 0;
-                $wanted_count = 0;
-            }
+       
             // Reservierung übergeben
 
             $faktor = 86400;
@@ -582,50 +579,56 @@ function reservations()
                     $username = build_profile_link($playername, $reservations['uid']);
                 }
             } else {
-                $username = $reservations['username'];
+                $username = $reservations['username']." (Gast)";
             }
 
             // optionen
             // Bearbeiten
             $reserv_days = $reservations['days'];
             $count_extend = $reservations['count'];
+            $reservation_cat = "";
             foreach ($reservation_categories as $reservation_category){
                 $select = "";
                 if($reservation_category == $reservations['cat']){
                     $select = "selected";
                 }
-
                 $reservation_cat .= "<option value='{$reservation_category}' $select>{$reservation_category}</option>";
             }
 
-            foreach ($reservation_genders as $reservation_genders){
+            foreach ($reservation_genders as $reservation_gender){
                 $select = "";
-                if($reservation_category == $reservations['cat']){
+                if($reservation_category == $reservations['gender']){
                     $select = "selected";
                 }
-
-                $reservation_gender_select .= "<option value='{$reservation_genders}' $select>{$reservation_genders}</option>";
+                $reservation_gender_select .= "<option value='{$reservation_gender}' $select>{$reservation_gender}</option>";
             }
 
-            eval("\$reservation_edit = \"".$templates->get("reservations_entry_edit")."\";");
-            if ($mybb->usergroup['canmodcp'] == 1) {
-                if ($reservations['count'] < $userextend) {
-                    $reservation_extend = "<a href=\"misc.php?action=reservations&extend_reservation={$reservation_id}&days={$reserv_days}&extend={$count_extend}\">{$lang->reservation_extend}</a>";
-                } else {
-                    $reservation_extend = "";
-                }
-                eval("\$reservation_options .= \"" . $templates->get("reservations_options") . "\";");
-            } elseif ($editallowd == true) {
-                if ($reservations['count'] < $userextend) {
-                    $reservation_extend = "<a href=\"misc.php?action=reservations&extend_reservation={$reservation_id}&days={$reserv_days}}&extend={$count_extend}\">{$lang->reservation_extend}</a>";
-                } else {
-                    $reservation_extend = "";
-                }
-                eval("\$reservation_options = \"" . $templates->get("reservations_options") . "\";");
+            if($mybb->usergroup['canmodcp'] == 1){
+                $edit_days = "<tr><td class='trow1'><strong>Tage</strong></td><td class='trow1'><input type='number' value='{$reservations['days']}' name='days' class='textbox' /></td></tr>";
             } else{
-                $reservation_options = "";
+                $edit_days = "";
             }
 
+            if($mybb->user['uid'] != 0) {
+                eval("\$reservation_edit = \"" . $templates->get("reservations_entry_edit") . "\";");
+                if ($mybb->usergroup['canmodcp'] == 1) {
+                    if ($reservations['count'] < $userextend) {
+                        $reservation_extend = "<a href=\"misc.php?action=reservations&extend_reservation={$reservation_id}&days={$reserv_days}&extend={$count_extend}\">{$lang->reservation_extend}</a>";
+                    } else {
+                        $reservation_extend = "";
+                    }
+                    eval("\$reservation_options .= \"" . $templates->get("reservations_options") . "\";");
+                } elseif ($editallowd == true) {
+                    if ($reservations['count'] < $userextend) {
+                        $reservation_extend = "<a href=\"misc.php?action=reservations&extend_reservation={$reservation_id}&days={$reserv_days}}&extend={$count_extend}\">{$lang->reservation_extend}</a>";
+                    } else {
+                        $reservation_extend = "";
+                    }
+                    eval("\$reservation_options = \"" . $templates->get("reservations_options") . "\";");
+                } else {
+                    $reservation_options = "";
+                }
+            }
             $wanted_link = "";
 
             if($count_extend > 0){
@@ -640,12 +643,13 @@ function reservations()
                 } elseif ($reservations['gender'] == 'männlich') {
                     eval("\$reservation_male .= \"" . $templates->get("reservations_entry") . "\";");
                 } elseif ($reservations['gender'] == 'divers') {
-                    eval("\$reservation_divers .= \"" . $templates->get("reservations_entry") . "\";");
+                    eval("\$reservation_diverse .= \"" . $templates->get("reservations_entry") . "\";");
                 }
             }
 
             // Gesuche ausgeben
             if($reservations['cat'] == $lang->reservation_wanted){
+                $wanted_link = "(<a href='{$reservations['wanted']}' target='_blank'>Gesuch</a>)";
                 eval("\$reservation_searched .= \"" . $templates->get("reservations_entry") . "\";");
             }
 
@@ -697,9 +701,13 @@ function reservations()
         if(isset($_POST['reserve'])){
             if($mybb->user['uid'] != 0){
             $username = $mybb->user[$userpf];
+            $days = $userres;
             } else{
                 $username = $_POST['username'];
+                $days = $guest_res;
             }
+
+
 
             $new_reservation = array(
                 "reservation" => $db->escape_string($_POST['reservation']),
@@ -708,7 +716,7 @@ function reservations()
                 "wanted" => $db->escape_string($_POST['wanted']),
                 "uid" => $mybb->user['uid'],
                 "reserved" => TIME_NOW,
-                "days" => $userres,
+                "days" => $days,
                 "username" => $db->escape_string($username),
             );
 
@@ -728,14 +736,26 @@ function reservations()
 // Reservierung editieren
         if(isset($mybb->input['reserve_edit'])){
             $reservation_uid = $mybb->input['reservation_id'];
-            $edit_reservation = array(
-                "username" => $db->escape_string($mybb->input['username']),
-                "uid" => $db->escape_string($mybb->input['uid']),
-                "reservation" => $db->escape_string($mybb->input['reservation']),
-                "cat" => $db->escape_string($mybb->input['cat']),
-                "gender" => $db->escape_string($mybb->input['gender']),
-                "wanted" => $db->escape_string($mybb->input['wanted']),
-            );
+            if($mybb->usergroup['canmodcp']){
+                $edit_reservation = array(
+                    "username" => $db->escape_string($mybb->input['username']),
+                    "uid" => $db->escape_string($mybb->input['uid']),
+                    "reservation" => $db->escape_string($mybb->input['reservation']),
+                    "cat" => $db->escape_string($mybb->input['cat']),
+                    "gender" => $db->escape_string($mybb->input['gender']),
+                    "wanted" => $db->escape_string($mybb->input['wanted']),
+                    "days" => (int) $mybb->input['days'],
+                );
+            } else {
+                $edit_reservation = array(
+                    "username" => $db->escape_string($mybb->input['username']),
+                    "uid" => $db->escape_string($mybb->input['uid']),
+                    "reservation" => $db->escape_string($mybb->input['reservation']),
+                    "cat" => $db->escape_string($mybb->input['cat']),
+                    "gender" => $db->escape_string($mybb->input['gender']),
+                    "wanted" => $db->escape_string($mybb->input['wanted']),
+                );
+            }
             $db->update_query("reservations", $edit_reservation, "reservation_id = '".$reservation_uid."'");
             redirect("misc.php?action=reservations");
 
@@ -792,6 +812,12 @@ function reservations()
             $db->update_query("reservations", $reservation_extend, "reservation_id = '".$extend_reservation."'");
             redirect("misc.php?action=reservations");
         }
+
+             if ($mybb->user['uid'] == 0) {
+                $options = "";
+                $res_count = 0;
+                $wanted_count = 0;
+            }
 
         eval("\$menu = \"".$templates->get("listen_nav")."\";");
         // Using the misc_help template for the page wrapper
@@ -853,9 +879,12 @@ function reservations_alert_global()
                         $reserv_reservationtime = "<a href='misc.php?action=reservations'>Deine Reservierung für <b>" . $reservierung . "</b> ist abgelaufen. {$extend}</a>";
 
                     }
+
                     eval("\$reservation_global_alerts .= \"" . $templates->get("reservations_alert") . "\";");
                 }
             }
+        } else {
+            $reservation_global_alerts = "";
         }
     }
 
@@ -894,7 +923,7 @@ function reservations_location_activity($plugin_array) {
  */
 function reservations_alerts() {
     global $mybb, $lang;
-    $lang->load('reservation');
+    $lang->load('reservations');
 
     class MybbStuff_MyAlerts_Formatter_myalerts_reservation_deleteFormatter extends MybbStuff_MyAlerts_Formatter_AbstractFormatter
     {
