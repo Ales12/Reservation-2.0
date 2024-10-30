@@ -35,4 +35,4 @@ $l['reservation_alert_resttime_none'] = "<a href='misc.php?action=reservations'>
 
 // Alerts
 $l['myalerts_reservation_delete'] = "{1} hat deine Reservierung für <b>{2}</b> ({3}) gelöscht.";
-$l['myalerts_setting_reservation_delete'] = "Benachrichtungen, wenn eine Reservierung gelöscht wurde?";
+$l['myalerts_setting_myalerts_reservation_delete'] = "Benachrichtungen, wenn eine Reservierung gelöscht wurde?";
